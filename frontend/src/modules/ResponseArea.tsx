@@ -129,7 +129,7 @@ function ResponseArea({
                                                             ? '.'.repeat(dotCount)
                                                         : <>
                                                             { response[1] === ResponseStatus.Failed ? 'Error: ' : '' }
-                                                            { response[0] }
+                                                            { response[2] }
                                                         </>
                                                     }
                                                 </p>

@@ -27,8 +27,56 @@ function App() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const submitPrompt = (prompt: string) => {
-        setResponses([[prompt, ResponseStatus.Failed, 'No backend']])
+    const submitPrompt = async (prompt: string) => {
+        setResponses(prevResponses => [
+            ...(prevResponses ?? []),
+            [prompt, ResponseStatus.Processing, ''] as [string, ResponseStatus, string]
+        ]);
+
+        try {
+            const res = await fetch('/api/chatbot', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    messages: [{ role: "user", content: prompt }]
+                })
+            });
+
+            const data = await res.json();
+            const aiContent = data.choices?.[0]?.message?.content || "No reply";
+
+            setResponses(prevResponses => {
+                if (!prevResponses) return null;
+
+                const updated = [...prevResponses];
+                const lastIndex = updated.length - 1;
+
+                updated[lastIndex] = [
+                    updated[lastIndex][0],
+                    ResponseStatus.Completed,
+                    aiContent
+                ];
+
+                return updated;
+            });
+        } catch (error: any) {
+            setResponses(prevResponses => {
+                if (!prevResponses) return null;
+
+                const updated = [...prevResponses];
+                const lastIndex = updated.length - 1;
+
+                updated[lastIndex] = [
+                    updated[lastIndex][0],
+                    ResponseStatus.Failed,
+                    error.message ?? String(error)
+                ];
+
+                return updated;
+            });
+        }
     };
 
     return (
