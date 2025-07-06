@@ -1,0 +1,14 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev:express": "npm --prefix ./express run dev",
+    "build:express": "npm --prefix ./express run build",
+    "start:express": "npm --prefix ./express run start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
