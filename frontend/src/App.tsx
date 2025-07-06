@@ -4,9 +4,17 @@ import ChatArea from './modules/ChatArea';
 import { useEffect, useState } from 'react';
 import './App.css';
 
+export const ResponseStatus = {
+    Processing: "processing",
+    Completed: "completed",
+    Failed: "failed",
+} as const;
+export type ResponseStatus = typeof ResponseStatus[keyof typeof ResponseStatus];
+
 function App() {
     const [ isMobile, setIsMobile ] = useState<boolean>(window.innerWidth <= 770);
     const [ sidebarVisible, setSidebarVisible ] = useState<boolean>(false);
+    const [ responses , setResponses ] = useState<[string, ResponseStatus, string][] | null>(null);
 
     useEffect(() => {
         const handleResize = () => {
@@ -19,6 +27,10 @@ function App() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    const submitPrompt = (prompt: string) => {
+        setResponses([[prompt, ResponseStatus.Failed, 'No backend']])
+    };
+
     return (
         <main>
             <Sidebar 
@@ -26,7 +38,11 @@ function App() {
                 sidebarVisible={sidebarVisible}
                 setSidebarVisible={setSidebarVisible}
             />
-            <ChatArea isMobile={isMobile}/>
+            <ChatArea 
+                isMobile={isMobile}
+                submitPrompt={submitPrompt}
+                responses={responses}
+            />
         </main>
     );
 }

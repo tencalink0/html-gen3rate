@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { ResponseStatus } from "../App";
+
+import Ai from '../assets/ai.png'
 
 const suggestions = [
     'website for your startup',
@@ -21,20 +24,30 @@ const suggestions = [
 const TYPING_SPEED = 50; // char per sec
 const WORD_TIMEOUT = 1300; // ms
 
-function ResponseArea() {
+function ResponseArea({
+    responses
+} : {
+    responses: [string, ResponseStatus, string][] | null
+}) {
     const [ code, _setCode ] = useState<HTMLElement | null>(null);
-    const [ responses , _setResponses ] = useState<string[]>([]);
     const [ creationSuggestion, setCreationSuggestion ] = useState<string>('');
     const typingInterval = useRef<number | null>(null);
     const deletingInterval = useRef<number | null>(null);
-    const [busy, setBusy] = useState(false);
+    const [ busy, setBusy ] = useState(false);
+    const [ dotCount, setDotCount ] = useState(1);
 
     useEffect(() => {
         toggleSuggestion(true);
+
+        const interval = setInterval(() => {
+            setDotCount((prev) => (prev % 3) + 1);
+        }, 100);
+
+        return () => clearInterval(interval);
     }, []);
 
     const toggleSuggestion = (generate: boolean) => {
-        if (responses.length > 0) return;
+        if (responses !== null) return;
         if (generate) {
             const id = Math.floor(Math.random() * suggestions.length);
             typeSuggestion(id);
@@ -91,7 +104,7 @@ function ResponseArea() {
                 code === null ? (
                     <div className="response-area">
                         {
-                            responses.length === 0 ? (
+                            /* responses === null */ false ? (
                                 <div className="quick-center">
                                     <h2 className="prompt-suggestion">
                                         Create a <span style={{
@@ -100,7 +113,25 @@ function ResponseArea() {
                                     </h2>
                                 </div>
                             ) : (
-                                <></>
+                                <div className="response-line-container">
+                                    {
+                                        [
+                                            ['2', ResponseStatus.Failed, 'No backend'],
+                                            ['1', ResponseStatus.Processing, 'No backend']
+                                        ].map(response => (
+                                            <div className="response-line">
+                                                <img className='profile-icon' src={Ai}/>
+                                                <p className="response-line-text">
+                                                    {
+                                                        response[1] === ResponseStatus.Processing 
+                                                            ? '.'.repeat(dotCount)
+                                                            : response[0]
+                                                    }
+                                                </p>
+                                            </div>
+                                        ))
+                                    }
+                                </div>
                             )
                         }
                     </div>

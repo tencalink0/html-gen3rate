@@ -1,6 +1,7 @@
 :root {
     --grey: #333;
     --grey-light: #444;
+    --grey-light-light: #555;
     --white: #fff;
     --neon-on-select: #00e1ff80;
     --text-title: 32px;
@@ -88,6 +89,7 @@ img.icon {
     outline: none;
     transition: box-shadow 0.3s ease;
     resize: none;
+    overflow-y: auto;
 }
 
 .response-area:focus {
@@ -102,16 +104,34 @@ img.icon {
 .response-area::-webkit-scrollbar-thumb:hover { background: #555; }
 .response-area::-webkit-scrollbar-track { border-radius: var(--border-radius); }
 
-.chat-box {
+.prompt-box {
     height: 15%;
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: row;
+    gap: 5%;
 }
 
-.chat-box .inputbox {
-    width: 80%;
+.prompt-submit {
+    border: none;
+    width: 7.5%;
+    background: transparent;
+}
+
+.prompt-submit img {
+    background: transparent;
+    width: 50%;
+    transition: transform 0.3s ease;
+}
+
+.prompt-submit:hover img {
+    transform: scale(1.2);
+}
+
+.prompt-box .inputbox {
+    width: 77.5%;
     padding: 15px;
     border: none;
     border-radius: var(--border-radius);
@@ -123,7 +143,7 @@ img.icon {
     resize: none;
 }
 
-.chat-box .inputbox:focus {
+.prompt-box .inputbox:focus {
     box-shadow: 0 0 10px var(--neon-on-select);
 }
 
@@ -146,4 +166,29 @@ img.icon {
 .prompt-suggestion {
     font-weight: lighter;
     font-size: var(--text-title);
+}
+
+.response-line-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.response-line {
+    height: auto;
+    display: flex;
+    gap: 20px;
+}
+
+.response-line img.profile-icon {
+    width: 40px;
+    background-color: var(--grey-light-light);
+    border-radius: 50%;
+    padding: 5px;
+}
+
+.response-line .response-line-text {
+    background-color: var(--grey-light-light);
+    border-radius: var(--border-radius);
+    padding: 5px;
 }
