@@ -9,6 +9,7 @@
     --border-radius: 8px;
 
     --blue: #00e1ff;
+    --error: #ff979080;
 }
 
 * {
@@ -122,7 +123,7 @@ img.icon {
 
 .prompt-submit img {
     background: transparent;
-    width: 50%;
+    width: 50px;
     transition: transform 0.3s ease;
 }
 
@@ -191,4 +192,11 @@ img.icon {
     background-color: var(--grey-light-light);
     border-radius: var(--border-radius);
     padding: 5px;
+    display: flex;
+    align-items: center;
+    border: 2px solid white;
+}
+
+.response-line-text.error {
+    background-color: var(--error);
 }

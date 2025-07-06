@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ResponseStatus } from "../App";
 
-import Ai from '../assets/ai.png'
+import AiIcon from '../assets/ai.png';
+import ErrorIcon from '../assets/close.png';
 
 const suggestions = [
     'website for your startup',
@@ -41,7 +42,7 @@ function ResponseArea({
 
         const interval = setInterval(() => {
             setDotCount((prev) => (prev % 3) + 1);
-        }, 100);
+        }, 150);
 
         return () => clearInterval(interval);
     }, []);
@@ -104,7 +105,7 @@ function ResponseArea({
                 code === null ? (
                     <div className="response-area">
                         {
-                            /* responses === null */ false ? (
+                            responses === null ? (
                                 <div className="quick-center">
                                     <h2 className="prompt-suggestion">
                                         Create a <span style={{
@@ -115,17 +116,21 @@ function ResponseArea({
                             ) : (
                                 <div className="response-line-container">
                                     {
-                                        [
-                                            ['2', ResponseStatus.Failed, 'No backend'],
-                                            ['1', ResponseStatus.Processing, 'No backend']
-                                        ].map(response => (
+                                        responses.map(response => (
                                             <div className="response-line">
-                                                <img className='profile-icon' src={Ai}/>
-                                                <p className="response-line-text">
+                                                <img className='profile-icon' src={
+                                                    response[1] === ResponseStatus.Failed ? ErrorIcon : AiIcon
+                                                }/>
+                                                <p className={`response-line-text ${
+                                                    response[1] === ResponseStatus.Failed ? 'error' : ''
+                                                }`}>
                                                     {
                                                         response[1] === ResponseStatus.Processing 
                                                             ? '.'.repeat(dotCount)
-                                                            : response[0]
+                                                        : <>
+                                                            { response[1] === ResponseStatus.Failed ? 'Error: ' : '' }
+                                                            { response[0] }
+                                                        </>
                                                     }
                                                 </p>
                                             </div>
