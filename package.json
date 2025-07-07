@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Learning about AI by getting a chatbot to generate html code",
   "scripts": {
+    "install:backend": "npm run install:backend --workspace backend",
     "dev": "npm run dev --workspace frontend",
     "dev:express": "npm run dev:express --workspace backend",
     "build": "npm run build --workspace frontend",
