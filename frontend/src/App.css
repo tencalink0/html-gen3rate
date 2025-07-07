@@ -32,6 +32,13 @@ main {
     width: 100vw;
 }
 
+h1 {
+    margin-top: 2%;
+    font-size: 48px;
+    color: var(--white);
+
+}
+
 .sidebar {
     background-color: var(--grey-light);
     height: 100%;
@@ -45,8 +52,10 @@ main {
 
 .sidebar .icon-container {
     display: flex;
-    align-items: center;
-    justify-content: flex-start;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-top: 10px;
+    gap: 10px;
     width: 100%;
 }
 

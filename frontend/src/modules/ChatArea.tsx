@@ -32,6 +32,7 @@ function ChatArea({
 
     return(
         <div className='chat-area'>
+            <h1>Chat Area</h1>
             <ResponseArea responses={responses}/>
             <div className='prompt-box'>
                 <textarea 

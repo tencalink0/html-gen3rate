@@ -1,5 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react';
-import HamburgerImage from '../assets/hamburger.png';
+import HamburgerIcon from '../assets/hamburger.png';
+import SettingsIcon from '../assets/setting.png';
+import NightIcon from '../assets/night-mode.png';
 
 function Sidebar({
     isMobile,
@@ -17,7 +19,7 @@ function Sidebar({
     return(
         <>
             <div className="sidebar" style={{
-                width: sidebarVisible ? '20%' : '60px'
+                width: isMobile || !sidebarVisible ? '60px' : '20%'
             }}>
                 {
                     isMobile || !sidebarVisible ? (
@@ -30,11 +32,25 @@ function Sidebar({
                         }}>3</span>rate</h2>
                     )
                 }
-                <div className='icon-container'>
-                     <img 
+                <div 
+                    className='icon-container'
+                    style={{
+                        flexDirection: isMobile || !sidebarVisible ? 
+                            'column' : 'row'
+                    }}
+                >
+                    <img 
                         className='icon'
-                        src={HamburgerImage}
+                        src={HamburgerIcon}
                         onClick={toggleSidebar}
+                    />
+                    <img 
+                        className='icon'
+                        src={NightIcon}
+                    />
+                    <img 
+                        className='icon'
+                        src={SettingsIcon}
                     />
                 </div>
             </div>
