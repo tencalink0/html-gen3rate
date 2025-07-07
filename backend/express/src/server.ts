@@ -3,6 +3,7 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import fetch from "node-fetch";
+import * as fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,10 +11,55 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = 8000;
 
+function convertToWrapper(text: string): [string, string] | Error {
+    let lines = text.split(/\r?\n/);
+    const splitPos = parseInt(lines[0]); // splits after line "n"
+    if (Number.isNaN(splitPos)) return new Error('Failed to parse wrapper');
+
+    lines = lines.slice(1);
+    if (splitPos > lines.length || splitPos < 0) return new Error('Failed to parse wrapper');
+    return [
+        lines.slice(0, splitPos-1).join('\n'),
+        lines.slice(splitPos-1).join('\n'),
+    ];
+}
+
+async function readPromptWrapper(title: string): Promise<[string, string]> {
+    return new Promise((resolve, reject) => {
+        fs.readFile(`./prompt_wrappers/${title}.txt`, 'utf-8', (err, data) => {
+            if (err) {
+                reject(new Error('Failed to extract wrapper'));
+            } else {
+                const errWrapper = convertToWrapper(data);
+                if (errWrapper instanceof Error) {
+                    reject(new Error('Failed to extract wrapper')); 
+                } else {
+                    resolve(errWrapper);
+                }
+            }
+        });
+    });
+}
+
 app.use(cors());
 app.use(express.json());
 
 app.use(express.static(path.join(__dirname, "public")));
+
+app.get("/api/test", async (req, res) => {
+    let wrapper: [string, string] | undefined = undefined;
+    try {
+        const localWrapper = await readPromptWrapper('html');
+        wrapper = localWrapper;
+    } catch (err: any) {
+        res.status(500).json({ error: err.message ?? String(err) });
+    }
+
+    if (wrapper !== undefined) res.json({
+        "wrapper-top": wrapper[0],
+        "wrapper-bottom": wrapper[1]
+    });
+});
 
 app.post("/api/chatbot", async (req, res) => { 
     try {
@@ -21,19 +67,29 @@ app.post("/api/chatbot", async (req, res) => {
 
         if (!userMessages) {
             res.status(400).json({ error: "Missing messages array in body" });
-            return;;
+            return;
         }
 
-        const response = await fetch("https://ai.hackclub.com/chat/completions", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ messages: userMessages })
-        });
+        let wrapper = undefined;
+        try {
+            const localWrapper = await readPromptWrapper('html');
+            wrapper = localWrapper;
+        } catch (err: any) {
+            res.status(500).json({ error: err.message ?? String(err) });
+        }
 
-        const data = await response.json();
-        res.json(data);
+        if (wrapper !== undefined) {
+            const response = await fetch("https://ai.hackclub.com/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ messages: userMessages })
+            });
+
+            const data = await response.json();
+            res.json(data);
+        }
     } catch (error) {
-        console.error("Error forwarding to Hack Club AI:", error);
+        console.error("Error:", error);
         res.status(500).json({ error: "Failed to get response from AI" });
     }
 });

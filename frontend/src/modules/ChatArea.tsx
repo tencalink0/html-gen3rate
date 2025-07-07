@@ -24,17 +24,24 @@ function ChatArea({
         setPrompt(e.target.value);
     };
 
+    const handleSubmit = () => {
+        if (prompt.trim() === '') return;
+        submitPrompt(prompt);
+        setPrompt('');
+    };
+
     return(
         <div className='chat-area'>
             <ResponseArea responses={responses}/>
             <div className='prompt-box'>
                 <textarea 
                     className='inputbox'
+                    value={prompt}
                     onChange={handleChange}
                 />
                 <button 
                     className="prompt-submit quick-center"
-                    onClick={() => submitPrompt(prompt)}
+                    onClick={handleSubmit}
                 >
                     <img src={SendIcon}/>
                 </button>
