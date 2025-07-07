@@ -27,7 +27,7 @@ function App() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const _submitPrompt = async (prompt: string) => {
+    const submitPrompt = async (prompt: string) => {
         setResponses(prevResponses => [
             ...(prevResponses ?? []),
             [prompt, ResponseStatus.Processing, ''] as [string, ResponseStatus, string]
@@ -40,12 +40,20 @@ function App() {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    messages: [{ role: "user", content: prompt }]
+                    messages: [
+                        ...(responses ?? []), 
+                        [prompt, ResponseStatus.Completed, '']
+                    ].flatMap(([prompt, _, response]) => 
+                        [   
+                            { role: 'user', content: prompt }, 
+                            { role: 'assistant', content: response }
+                        ]
+                    )
                 })
             });
 
             const data = await res.json();
-            const aiContent = data.choices?.[0]?.message?.content || "No reply";
+            const aiContent = data.choices?.[0]?.message?.content || data.error || "No reply";
 
             setResponses(prevResponses => {
                 if (!prevResponses) return null;
@@ -79,9 +87,7 @@ function App() {
         }
     };
 
-    console.log(_submitPrompt);
-
-    const submitPrompt = async (prompt: string) => {
+    const _submitPrompt = async (prompt: string) => {
         setResponses(prevResponses => [
             ...(prevResponses ?? []),
             [prompt, ResponseStatus.Completed, `
@@ -89,6 +95,7 @@ function App() {
             `] as [string, ResponseStatus, string]
         ]);
     }
+    console.log(_submitPrompt);
 
     return (
         <main>

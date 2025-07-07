@@ -46,7 +46,7 @@ app.use(express.json());
 
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("/api/test", async (req, res) => {
+app.get("/api/test", async (_req, res) => {
     let wrapper: [string, string] | undefined = undefined;
     try {
         const localWrapper = await readPromptWrapper('html');
@@ -63,14 +63,17 @@ app.get("/api/test", async (req, res) => {
 
 app.post("/api/chatbot", async (req, res) => { 
     try {
-        const userMessages = req.body.messages;
+        const userMessages = req.body.messages.filter(
+            (message: any) => message.content && 
+            message.content.trim() !== ""
+        );
 
-        if (!userMessages) {
+        if (!userMessages || userMessages.length < 0) {
             res.status(400).json({ error: "Missing messages array in body" });
             return;
         }
 
-        let wrapper = undefined;
+        let wrapper: [string, string] | undefined = undefined;
         try {
             const localWrapper = await readPromptWrapper('html');
             wrapper = localWrapper;
@@ -79,10 +82,18 @@ app.post("/api/chatbot", async (req, res) => {
         }
 
         if (wrapper !== undefined) {
+            const wrappedLastMessage = [
+                ...userMessages.slice(0, -1),
+                {
+                    role: 'user',
+                    content: wrapper[0] + ' ' + userMessages[userMessages.length-1].content + ' \n' + wrapper[1]
+                }
+            ];
+
             const response = await fetch("https://ai.hackclub.com/chat/completions", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ messages: userMessages })
+                body: JSON.stringify({ messages: wrappedLastMessage })
             });
 
             const data = await response.json();
@@ -90,7 +101,7 @@ app.post("/api/chatbot", async (req, res) => {
         }
     } catch (error) {
         console.error("Error:", error);
-        res.status(500).json({ error: "Failed to get response from AI" });
+        res.status(500).json({ error: error });
     }
 });
 
