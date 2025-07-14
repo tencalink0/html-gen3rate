@@ -15,7 +15,8 @@ function ChatArea({
     submitPrompt: (prompt: string) => void
 }) {
     const [ prompt, setPrompt ] = useState<string>('');
-
+    const [ codeTitle, setCodeTitle ] = useState<string | undefined>(undefined)
+    
     useEffect(() => {
         console.log(isMobile);
     }, []);
@@ -32,8 +33,17 @@ function ChatArea({
 
     return(
         <div className='chat-area'>
-            <h1>Chat Area</h1>
-            <ResponseArea responses={responses}/>
+            <h1>
+                {
+                    codeTitle === undefined ?
+                        'Chat Area' :
+                        codeTitle
+                }
+            </h1>
+            <ResponseArea 
+                responses={responses}
+                setCodeTitle={setCodeTitle}
+            />
             <div className='prompt-box'>
                 <textarea 
                     className='inputbox'

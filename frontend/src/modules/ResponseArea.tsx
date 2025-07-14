@@ -36,9 +36,11 @@ export const ResponseJsonSchema = z.object({
 export type ResponseJson = z.infer<typeof ResponseJsonSchema>;
 
 function ResponseArea({
-    responses
+    responses,
+    setCodeTitle
 } : {
-    responses: [string, ResponseStatus, ResponseJson | string][] | null
+    responses: [string, ResponseStatus, ResponseJson | string][] | null,
+    setCodeTitle: (codeTitle?: string) => void
 }) {
     const [ code, setCode ] = useState<string | null>(null);
     const [ creationSuggestion, setCreationSuggestion ] = useState<string>('');
@@ -109,9 +111,10 @@ function ResponseArea({
         }, 1000 / TYPING_SPEED);
     };
 
-    const loadCode = (newCode: string) => {
+    const loadCode = (newCode: string, newTitle?: string) => {
         const sanitizedCode = DOMPurify.sanitize(newCode);
-
+        
+        setCodeTitle(newTitle);
         setCode(
             sanitizedCode
         );
@@ -162,7 +165,8 @@ function ResponseArea({
                                                         <a 
                                                             className="highlight-text"
                                                             onClick={() => loadCode(
-                                                                (response[2] as ResponseJson).html
+                                                                (response[2] as ResponseJson).html,
+                                                                (response[2] as ResponseJson).description
                                                             )}
                                                         >View HTML Source</a>
                                                         : ''

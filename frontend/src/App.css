@@ -10,6 +10,7 @@
     --border-radius: 8px;
 
     --blue: #00e1ff;
+    --blue-hover: #00b8cc;
     --error: #ff979080;
 }
 
@@ -206,6 +207,11 @@ iframe.page-display {
 .highlight-text {
     color: var(--blue);
     font-size: var(--text-response);
+    transition: color 0.2s ease;
+}
+
+.highlight-text:hover {
+    color: var(--blue-hover);
 }
 
 .response-line {

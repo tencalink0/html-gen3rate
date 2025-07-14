@@ -28,7 +28,7 @@ function App() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const _submitPrompt = async (prompt: string) => {
+    const submitPrompt = async (prompt: string) => {
         setResponses(prevResponses => [
             ...(prevResponses ?? []),
             [prompt, ResponseStatus.Processing, ''] as [string, ResponseStatus, ResponseJson | string]
@@ -56,20 +56,40 @@ function App() {
             const data = await res.json();
             const aiContent = data.choices?.[0]?.message?.content || data.error || "No reply";
 
-            setResponses(prevResponses => {
-                if (!prevResponses) return null;
+            let jsonValid: string | null = null;
+            try {
+                const parsedStr = JSON.parse(
+                    aiContent.replace(/`/g, '')
+                );
+                jsonValid = parsedStr;
+            } catch (err: any) {
+                console.error('Invalid data from the AI');
+                if (err instanceof SyntaxError) {
+                    console.error('JSON parse error:', err.message);
+                }
+            }
 
-                const updated = [...prevResponses];
-                const lastIndex = updated.length - 1;
+            let parsedResponse: ResponseJson | null = null;
+            if (jsonValid) {
+                const parsed = await ResponseJsonSchema.safeParseAsync(jsonValid);
+                if (parsed.success) {
+                    parsedResponse = parsed.data;
+                } else {
+                    console.error(parsed.error.issues);
+                }
+            }
 
-                updated[lastIndex] = [
-                    updated[lastIndex][0],
-                    ResponseStatus.Completed,
-                    aiContent
-                ];
+            const successfulParse = jsonValid === null || parsedResponse === null ? false : true;
+            const newResponse = [
+                prompt, 
+                successfulParse ? ResponseStatus.Completed : ResponseStatus.Failed, 
+                successfulParse ? parsedResponse : 'Invalid data provided from the AI'
+            ] as [string, ResponseStatus, ResponseJson | string]
 
-                return updated;
-            });
+            setResponses(prevResponses => [
+                ...(prevResponses ?? []),
+                newResponse
+            ]);
         } catch (error: any) {
             setResponses(prevResponses => {
                 if (!prevResponses) return null;
@@ -88,9 +108,9 @@ function App() {
         }
     };
 
-    const submitPrompt = async (prompt: string) => {
+    const _submitPrompt = async (prompt: string) => {
         const aiContent = `
-            { "response": "Your sleek webpage is on its way!", "html": "<!DOCTYPE html><html><head><title>Sleek Webpage</title><style>body{font-family:Arial,sans-serif;margin:0;padding:0}header{background-color:#333;color:#fff;padding:1em;text-align:center}.container{display:flex;flex-direction:column;align-items:center;padding:2em}.card{background-color:#f7f7f7;padding:1em;margin:1em;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1)}</style></head><body><header><h1>Welcome to my Sleek Webpage</h1></header><div class='container'><div class='card'><h2>About Me</h2><p>This is a sample webpage.</p></div></div></body></html>" }
+            { "response": "Your sleek webpage is on its way!", "description": "Omg", "html": "<!DOCTYPE html><html><head><title>Sleek Webpage</title><style>body{font-family:Arial,sans-serif;margin:0;padding:0}header{background-color:#333;color:#fff;padding:1em;text-align:center}.container{display:flex;flex-direction:column;align-items:center;padding:2em}.card{background-color:#f7f7f7;padding:1em;margin:1em;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1)}</style></head><body><header><h1>Welcome to my Sleek Webpage</h1></header><div class='container'><div class='card'><h2>About Me</h2><p>This is a sample webpage.</p></div></div></body></html>" }
         `;
 
         let jsonValid: string | null = null;
@@ -123,7 +143,7 @@ function App() {
             newResponse
         ]);
     }
-    //console.log(_submitPrompt);
+    console.log(_submitPrompt);
 
     return (
         <main>
