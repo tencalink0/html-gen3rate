@@ -15,10 +15,22 @@
     "frontend",
     "backend"
   ],
-  "keywords": ["ai", "generate", "html", "generate-html", "editor"],
+  "keywords": [
+    "ai",
+    "generate",
+    "html",
+    "generate-html",
+    "editor"
+  ],
   "author": "tencalink0",
   "license": "MIT",
   "devDependencies": {
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
     "shx": "^0.4.0"
+  },
+  "dependencies": {
+    "dompurify": "^3.2.6",
+    "zod": "^4.0.3"
   }
 }

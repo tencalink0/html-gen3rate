@@ -3,6 +3,7 @@ import ChatArea from './modules/ChatArea';
 
 import { useEffect, useState } from 'react';
 import './App.css';
+import { ResponseJsonSchema, type ResponseJson } from './modules/ResponseArea';
 
 export const ResponseStatus = {
     Processing: "processing",
@@ -14,7 +15,7 @@ export type ResponseStatus = typeof ResponseStatus[keyof typeof ResponseStatus];
 function App() {
     const [ isMobile, setIsMobile ] = useState<boolean>(window.innerWidth <= 770);
     const [ sidebarVisible, setSidebarVisible ] = useState<boolean>(false);
-    const [ responses , setResponses ] = useState<[string, ResponseStatus, string][] | null>(null);
+    const [ responses , setResponses ] = useState<[string, ResponseStatus, ResponseJson | string][] | null>(null);
 
     useEffect(() => {
         const handleResize = () => {
@@ -27,10 +28,10 @@ function App() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const submitPrompt = async (prompt: string) => {
+    const _submitPrompt = async (prompt: string) => {
         setResponses(prevResponses => [
             ...(prevResponses ?? []),
-            [prompt, ResponseStatus.Processing, ''] as [string, ResponseStatus, string]
+            [prompt, ResponseStatus.Processing, ''] as [string, ResponseStatus, ResponseJson | string]
         ]);
 
         try {
@@ -87,15 +88,42 @@ function App() {
         }
     };
 
-    const _submitPrompt = async (prompt: string) => {
+    const submitPrompt = async (prompt: string) => {
+        const aiContent = `
+            { "response": "Your sleek webpage is on its way!", "html": "<!DOCTYPE html><html><head><title>Sleek Webpage</title><style>body{font-family:Arial,sans-serif;margin:0;padding:0}header{background-color:#333;color:#fff;padding:1em;text-align:center}.container{display:flex;flex-direction:column;align-items:center;padding:2em}.card{background-color:#f7f7f7;padding:1em;margin:1em;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1)}</style></head><body><header><h1>Welcome to my Sleek Webpage</h1></header><div class='container'><div class='card'><h2>About Me</h2><p>This is a sample webpage.</p></div></div></body></html>" }
+        `;
+
+        let jsonValid: string | null = null;
+        try {
+            const parsedStr = JSON.parse(aiContent);
+            jsonValid = parsedStr;
+        } catch {
+            console.error('Invalid data from the AI');
+        }
+
+        let parsedResponse: ResponseJson | null = null;
+        if (jsonValid) {
+            const parsed = await ResponseJsonSchema.safeParseAsync(jsonValid);
+            if (parsed.success) {
+                parsedResponse = parsed.data;
+            } else {
+                console.error(parsed.error.issues);
+            }
+        }
+
+        const successfulParse = jsonValid === null || parsedResponse === null ? false : true;
+        const newResponse = [
+            prompt, 
+            successfulParse ? ResponseStatus.Completed : ResponseStatus.Failed, 
+            successfulParse ? parsedResponse : 'Invalid data provided from the AI'
+        ] as [string, ResponseStatus, ResponseJson | string]
+
         setResponses(prevResponses => [
             ...(prevResponses ?? []),
-            [prompt, ResponseStatus.Completed, `
-                I'd be happy to help you create a webpage. However, I'm a large language model, I don't have the capability to directly create a webpage that you can access online. But I can guide you through the process and provide you with the necessary code and instructions to create a simple webpage. Here's what I can do: 1. **Provide HTML, CSS, and JavaScript code**: I can give you the code for a basic webpage, including HTML for structure, CSS for styling, and JavaScript for interactivity. 2. **Explain the code and its functionality**: I can help you understand what the code does and how to modify it to suit your needs. 3. **Suggest a simple webpage design**: I can propose a simple design for your webpage, including layout, colors, and other visual elements. To get started, can you please provide me with some more information about the webpage you want to create? For example: * What is the purpose of the webpage (e.g., personal, business, informational)? * What content do you want to include (e.g., text, images, links, forms)? * Do you have any specific design or branding requirements (e.g., colors, fonts, logos)? Let's chat, and I'll help you create a simple webpage.    
-            `] as [string, ResponseStatus, string]
+            newResponse
         ]);
     }
-    console.log(_submitPrompt);
+    //console.log(_submitPrompt);
 
     return (
         <main>

@@ -1,7 +1,7 @@
 import { useEffect, useState} from "react";
 import { ResponseStatus } from "../App";
 
-import ResponseArea from './ResponseArea';
+import ResponseArea, { type ResponseJson } from './ResponseArea';
 
 import SendIcon from '../assets/send.png';
 
@@ -11,7 +11,7 @@ function ChatArea({
     submitPrompt
 }: {
     isMobile: boolean,
-    responses: [string, ResponseStatus, string][] | null,
+    responses: [string, ResponseStatus, ResponseJson | string][] | null,
     submitPrompt: (prompt: string) => void
 }) {
     const [ prompt, setPrompt ] = useState<string>('');

@@ -1,5 +1,7 @@
+import { z } from "zod";
 import { useEffect, useRef, useState } from "react";
 import { ResponseStatus } from "../App";
+import DOMPurify from 'dompurify';
 
 import AiIcon from '../assets/ai.png';
 import ErrorIcon from '../assets/close.png';
@@ -25,12 +27,20 @@ const suggestions = [
 const TYPING_SPEED = 50; // char per sec
 const WORD_TIMEOUT = 1300; // ms
 
+export const ResponseJsonSchema = z.object({
+    response: z.string(),
+    description: z.string().optional(),
+    html: z.string()
+});
+
+export type ResponseJson = z.infer<typeof ResponseJsonSchema>;
+
 function ResponseArea({
     responses
 } : {
-    responses: [string, ResponseStatus, string][] | null
+    responses: [string, ResponseStatus, ResponseJson | string][] | null
 }) {
-    const [ code, _setCode ] = useState<HTMLElement | null>(null);
+    const [ code, setCode ] = useState<string | null>(null);
     const [ creationSuggestion, setCreationSuggestion ] = useState<string>('');
     const typingInterval = useRef<number | null>(null);
     const deletingInterval = useRef<number | null>(null);
@@ -99,6 +109,14 @@ function ResponseArea({
         }, 1000 / TYPING_SPEED);
     };
 
+    const loadCode = (newCode: string) => {
+        const sanitizedCode = DOMPurify.sanitize(newCode);
+
+        setCode(
+            sanitizedCode
+        );
+    }
+
     return(
         <div className="response-area-container">
             {
@@ -114,25 +132,41 @@ function ResponseArea({
                                     </h2>
                                 </div>
                             ) : (
-                                <div className="response-line-container">
+                                <div className="response-collection">
                                     {
-                                        responses.map(response => (
-                                            <div className="response-line">
-                                                <img className='profile-icon' src={
-                                                    response[1] === ResponseStatus.Failed ? ErrorIcon : AiIcon
-                                                }/>
-                                                <p className={`response-line-text ${
-                                                    response[1] === ResponseStatus.Failed ? 'error' : ''
-                                                }`}>
-                                                    {
-                                                        response[1] === ResponseStatus.Processing 
-                                                            ? '.'.repeat(dotCount)
-                                                        : <>
-                                                            { response[1] === ResponseStatus.Failed ? 'Error: ' : '' }
-                                                            { response[2] }
-                                                        </>
-                                                    }
-                                                </p>
+                                        responses.map((response, index) => (
+                                            <div className="response-line-container" key={index}>
+                                                <div className="response-line">
+                                                    <img className='profile-icon' src={
+                                                        response[1] === ResponseStatus.Failed ? ErrorIcon : AiIcon
+                                                    }/>
+                                                    <p className={`response-line-text ${
+                                                        response[1] === ResponseStatus.Failed ? 'error' : ''
+                                                    }`}>
+                                                        {
+                                                            response[1] === ResponseStatus.Processing 
+                                                                ? '.'.repeat(dotCount)
+                                                            : <>
+                                                                { response[1] === ResponseStatus.Failed ? 'Error: ' : '' }
+                                                                {
+                                                                    ResponseJsonSchema.safeParse(response[2]).success ?
+                                                                        (response[2] as ResponseJson).response :
+                                                                        response[2]
+                                                                }
+                                                            </>
+                                                        }
+                                                    </p>
+                                                </div>
+                                                {
+                                                    ResponseJsonSchema.safeParse(response[2]).success ?
+                                                        <a 
+                                                            className="highlight-text"
+                                                            onClick={() => loadCode(
+                                                                (response[2] as ResponseJson).html
+                                                            )}
+                                                        >View HTML Source</a>
+                                                        : ''
+                                                }
                                             </div>
                                         ))
                                     }
@@ -141,7 +175,10 @@ function ResponseArea({
                         }
                     </div>
                 ) : (
-                    <textarea className="response-area" />
+                    <iframe
+                        className="page-display"
+                        srcDoc={code}
+                    />
                 )
             }
         </div>

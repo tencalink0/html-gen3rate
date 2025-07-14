@@ -4,8 +4,9 @@ It needs to be clean and sleek and follow these requirements:
 Also, please respond in a json format:
 {
     response: a little response saying ok or whatever,
+    description: a small phrase or words describing the page
     html: actual html content to be parsed
 }
 Please respond in the json above, very important as your message will be parsed!!!
 When the user follows up, make sure to change up your message
-Make sure not to use any " as this will break the json file
+Make sure is json friendly and ready to be imported, so don't include anything else
