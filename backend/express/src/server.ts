@@ -81,7 +81,7 @@ app.post("/api/chatbot", async (req, res) => {
                 return message.content && message.content.trim() !== ""
         });
 
-        console.log(userMessages);
+        //console.log(userMessages);
 
         if (!userMessages || userMessages.length < 0) {
             res.status(400).json({ error: "Missing messages array in body" });

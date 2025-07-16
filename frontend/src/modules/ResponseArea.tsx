@@ -121,8 +121,6 @@ function ResponseArea({
         setCode(
             sanitizedCode
         );
-
-        console.log(responses);
     }
 
     const closePage = () => {
