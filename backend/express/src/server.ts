@@ -90,7 +90,7 @@ app.post("/api/chatbot", async (req, res) => {
 
         let wrapper: [string, string] | undefined = undefined;
         try {
-            const localWrapper = await readPromptWrapper('html');
+            const localWrapper = await readPromptWrapper(req.body.wrapper || 'html');
             wrapper = localWrapper;
         } catch (err: any) {
             res.status(500).json({ error: err.message ?? String(err) });

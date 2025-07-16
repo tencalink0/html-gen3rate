@@ -6,15 +6,23 @@ import NightIcon from '../assets/night-mode.png';
 function Sidebar({
     isMobile,
     sidebarVisible,
-    setSidebarVisible
+    setSidebarVisible,
+    settingState,
+    setSettingState
 } : {
     isMobile: boolean,
     sidebarVisible: boolean,
-    setSidebarVisible: Dispatch<SetStateAction<boolean>>
+    setSidebarVisible: Dispatch<SetStateAction<boolean>>,
+    settingState: boolean,
+    setSettingState: Dispatch<SetStateAction<boolean>>
 }) {
     const toggleSidebar = () => {
         setSidebarVisible(!sidebarVisible)
-    }
+    };
+
+    const toggleSettings = () => {
+        setSettingState(!settingState);
+    };
 
     return(
         <>
@@ -51,6 +59,7 @@ function Sidebar({
                     <img 
                         className='icon'
                         src={SettingsIcon}
+                        onClick={toggleSettings}
                     />
                 </div>
             </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState} from "react";
+import { useState } from "react";
 import { ResponseStatus } from "../App";
 
 import ResponseArea, { type ResponseJson } from './ResponseArea';
@@ -6,20 +6,14 @@ import ResponseArea, { type ResponseJson } from './ResponseArea';
 import SendIcon from '../assets/send.png';
 
 function ChatArea({
-    isMobile,
     responses,
     submitPrompt
 }: {
-    isMobile: boolean,
     responses: [string, ResponseStatus, ResponseJson | string][] | null,
     submitPrompt: (prompt: string) => void
 }) {
     const [ prompt, setPrompt ] = useState<string>('');
     const [ codeTitle, setCodeTitle ] = useState<string | undefined>(undefined)
-    
-    useEffect(() => {
-        console.log(isMobile);
-    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setPrompt(e.target.value);

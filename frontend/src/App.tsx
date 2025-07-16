@@ -4,6 +4,7 @@ import ChatArea from './modules/ChatArea';
 import { useEffect, useState } from 'react';
 import './App.css';
 import { ResponseJsonSchema, type ResponseJson } from './modules/ResponseArea';
+import Settings from './modules/Settings';
 
 export const ResponseStatus = {
     Processing: "processing",
@@ -20,8 +21,13 @@ function App() {
     const [ isMobile, setIsMobile ] = useState<boolean>(window.innerWidth <= 770);
     const [ sidebarVisible, setSidebarVisible ] = useState<boolean>(false);
     const [ responses , setResponses ] = useState<[string, ResponseStatus, ResponseJson | string][] | null>(null);
-
+    const [ settingState, setSettingState] = useState<boolean>(false);
+    
     useEffect(() => {
+        if (localStorage.getItem('wrapper') === null) {
+            localStorage.setItem('wrapper', 'html');
+        }
+        
         const handleResize = () => {
             setIsMobile(window.innerWidth <= 770);
         };
@@ -53,12 +59,15 @@ function App() {
                             { role: 'user', content: prompt }, 
                             { role: 'assistant', content: response }
                         ]
-                    )
+                    ),
+                    wrapper: localStorage.getItem('wrapper') || 'html'
                 })
             });
 
             const data = await res.json();
-            const aiContent = await data.choices?.[0]?.message?.content || data.error || "No reply";
+            const aiContent = await data.choices?.[0]?.message?.content || "No reply";
+
+            if (data.error) throw new Error(data.error);
 
             let jsonValid: string | null = null;
             try {
@@ -157,12 +166,17 @@ function App() {
                 isMobile={isMobile}
                 sidebarVisible={sidebarVisible}
                 setSidebarVisible={setSidebarVisible}
+                settingState={settingState}
+                setSettingState={setSettingState}
             />
-            <ChatArea 
-                isMobile={isMobile}
-                submitPrompt={submitPrompt}
-                responses={responses}
-            />
+            {
+                settingState ?
+                <Settings /> :
+                <ChatArea
+                    submitPrompt={submitPrompt}
+                    responses={responses}
+                />
+            }
         </main>
     );
 }
