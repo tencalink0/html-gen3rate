@@ -32,7 +32,7 @@ function App() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const submitPrompt = async (prompt: string) => {
+    const _submitPrompt = async (prompt: string) => {
         setResponses(prevResponses => [
             ...(prevResponses ?? []),
             [prompt, ResponseStatus.Processing, ''] as [string, ResponseStatus, ResponseJson | string]
@@ -114,9 +114,9 @@ function App() {
         }
     };
 
-    const _submitPrompt = async (prompt: string) => {
+    const submitPrompt = async (prompt: string) => {
         const aiContent = `
-            { "response": "Your sleek webpage is on its way!", "description": "Omg", "html": "<!DOCTYPE html><html><head><title>Sleek Webpage</title><style>body{font-family:Arial,sans-serif;margin:0;padding:0}header{background-color:#333;color:#fff;padding:1em;text-align:center}.container{display:flex;flex-direction:column;align-items:center;padding:2em}.card{background-color:#f7f7f7;padding:1em;margin:1em;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1)}</style></head><body><header><h1>Welcome to my Sleek Webpage</h1></header><div class='container'><div class='card'><h2>About Me</h2><p>This is a sample webpage.</p></div></div></body></html>" }
+            { "response": "a", "description": "Omg", "html": "<!DOCTYPE html><html><head><title>Sleek Webpage</title><style>body{font-family:Arial,sans-serif;margin:0;padding:0}header{background-color:#333;color:#fff;padding:1em;text-align:center}.container{display:flex;flex-direction:column;align-items:center;padding:2em}.card{background-color:#f7f7f7;padding:1em;margin:1em;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1)}</style></head><body><header><h1>Welcome to my Sleek Webpage</h1></header><div class='container'><div class='card'><h2>About Me</h2><p>This is a sample webpage.</p></div></div></body></html>" }
         `;
 
         let jsonValid: string | null = null;

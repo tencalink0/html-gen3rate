@@ -9,6 +9,7 @@ function Credits() {
                 <a href="https://www.flaticon.com/free-icons/close" title="close icons">Close icons created by Alfredo Hernandez - Flaticon</a>
                 <a href="https://www.flaticon.com/free-icons/settings" title="settings icons">Settings icons created by Freepik - Flaticon</a>
                 <a href="https://www.flaticon.com/free-icons/dark-mode" title="dark mode icons">Dark mode icons created by mpanicon - Flaticon</a>
+                <a href="https://www.flaticon.com/free-icons/save" title="save icons">Save icons created by Bharat Icons - Flaticon</a>
             </ul>
         </>
     );

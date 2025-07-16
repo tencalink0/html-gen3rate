@@ -6,6 +6,7 @@ import { ResponseStatus } from "../App";
 import AiIcon from '../assets/ai.png';
 import ErrorIcon from '../assets/close.png';
 import CloseBtn from '../assets/close.svg';
+import DownloadBtn from '../assets/download-code.png';
 
 const suggestions = [
     'website for your startup',
@@ -129,6 +130,21 @@ function ResponseArea({
         setCode(null);
     };
 
+    const downloadCode = (codeDownload: string, title?: string) => {
+        const blob = new Blob([codeDownload], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+
+        const kebab = (title || 'download').toLowerCase().replace(/\s+/g, '-');
+        a.download = `${kebab}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     return(
         <div className="response-area-container">
             {
@@ -171,13 +187,23 @@ function ResponseArea({
                                                 </div>
                                                 {
                                                     ResponseJsonSchema.safeParse(response[2]).success ?
-                                                        <a 
-                                                            className="highlight-text"
-                                                            onClick={() => loadCode(
-                                                                (response[2] as ResponseJson).html,
-                                                                (response[2] as ResponseJson).description
-                                                            )}
-                                                        >View HTML Source</a>
+                                                        <div className="response-interaction">
+                                                            <a 
+                                                                className="highlight-text"
+                                                                onClick={() => loadCode(
+                                                                    (response[2] as ResponseJson).html,
+                                                                    (response[2] as ResponseJson).description
+                                                                )}
+                                                            >Preview</a>
+                                                            <img 
+                                                                src={DownloadBtn}
+                                                                className="download"
+                                                                onClick={() => downloadCode(
+                                                                    (response[2] as ResponseJson).html,
+                                                                    (response[2] as ResponseJson).description
+                                                                )}
+                                                            />
+                                                        </div>
                                                         : ''
                                                 }
                                             </div>
