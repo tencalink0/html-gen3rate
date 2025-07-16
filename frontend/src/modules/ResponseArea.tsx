@@ -5,6 +5,7 @@ import DOMPurify from 'dompurify';
 
 import AiIcon from '../assets/ai.png';
 import ErrorIcon from '../assets/close.png';
+import CloseBtn from '../assets/close.svg';
 
 const suggestions = [
     'website for your startup',
@@ -120,6 +121,10 @@ function ResponseArea({
         );
     }
 
+    const closePage = () => {
+        setCode(null);
+    };
+
     return(
         <div className="response-area-container">
             {
@@ -179,10 +184,19 @@ function ResponseArea({
                         }
                     </div>
                 ) : (
-                    <iframe
-                        className="page-display"
-                        srcDoc={code}
-                    />
+                    <div
+                        className="page-display-wrapper"
+                    >
+                        <iframe
+                            className="page-display"
+                            srcDoc={code}
+                        />
+                        <img 
+                            src={CloseBtn} 
+                            className="close-btn"
+                            onClick={closePage}
+                        />
+                    </div>
                 )
             }
         </div>

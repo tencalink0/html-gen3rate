@@ -12,6 +12,10 @@ export const ResponseStatus = {
 } as const;
 export type ResponseStatus = typeof ResponseStatus[keyof typeof ResponseStatus];
 
+function keepFunc(func: any) {
+    if (func.hello) window.innerWidth;
+}
+
 function App() {
     const [ isMobile, setIsMobile ] = useState<boolean>(window.innerWidth <= 770);
     const [ sidebarVisible, setSidebarVisible ] = useState<boolean>(false);
@@ -86,10 +90,11 @@ function App() {
                 successfulParse ? parsedResponse : 'Invalid data provided from the AI'
             ] as [string, ResponseStatus, ResponseJson | string]
 
-            setResponses(prevResponses => [
-                ...(prevResponses ?? []),
-                newResponse
-            ]);
+            setResponses(prevResponses => {
+                const responses = [...(prevResponses ?? [])];
+                responses[responses.length - 1] = newResponse;
+                return responses;
+            });
         } catch (error: any) {
             setResponses(prevResponses => {
                 if (!prevResponses) return null;
@@ -143,7 +148,8 @@ function App() {
             newResponse
         ]);
     }
-    console.log(_submitPrompt);
+    
+    keepFunc(_submitPrompt);
 
     return (
         <main>
