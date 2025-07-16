@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { useEffect, useRef, useState } from "react";
 import { ResponseStatus } from "../App";
-import DOMPurify from 'dompurify';
+//import DOMPurify from 'dompurify';
 
 import AiIcon from '../assets/ai.png';
 import ErrorIcon from '../assets/close.png';
@@ -113,15 +113,19 @@ function ResponseArea({
     };
 
     const loadCode = (newCode: string, newTitle?: string) => {
-        const sanitizedCode = DOMPurify.sanitize(newCode);
-        
+        //const sanitizedCode = DOMPurify.sanitize(newCode);
+        const sanitizedCode = newCode;
+
         setCodeTitle(newTitle);
         setCode(
             sanitizedCode
         );
+
+        console.log(responses);
     }
 
     const closePage = () => {
+        setCodeTitle(undefined);
         setCode(null);
     };
 

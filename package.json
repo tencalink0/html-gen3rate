@@ -9,7 +9,8 @@
     "build": "npm run build --workspace frontend",
     "build:express": "npm run build && npm run copy-dist:express && npm run build:express --workspace backend",
     "copy-dist:express": "shx rm -rf backend/express/dist && shx mkdir -p backend/express/dist/public && shx cp -r frontend/dist/* backend/express/dist/public/ && shx rm -rf frontend/dist",
-    "start:express": "npm run start:express --workspace backend"
+    "start:express": "npm run start:express --workspace backend",
+    "quickfire:express": "npm run build:express --workspace backend && npm run start:express"
   },
   "workspaces": [
     "frontend",

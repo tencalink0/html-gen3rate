@@ -63,10 +63,25 @@ app.get("/api/test", async (_req, res) => {
 
 app.post("/api/chatbot", async (req, res) => { 
     try {
-        const userMessages = req.body.messages.filter(
-            (message: any) => message.content && 
-            message.content.trim() !== ""
-        );
+        const userMessages = req.body.messages
+            .map((message: any) => {
+                if (!message.role || !message.content) return message;
+                if (
+                    message.role === 'assistant' && message.content.html
+                ) {
+                    return {
+                        ...message,
+                        content: message.content.html
+                    };
+                } else {
+                    return message;
+                }
+            })
+            .filter((message: any) => {
+                return message.content && message.content.trim() !== ""
+        });
+
+        console.log(userMessages);
 
         if (!userMessages || userMessages.length < 0) {
             res.status(400).json({ error: "Missing messages array in body" });

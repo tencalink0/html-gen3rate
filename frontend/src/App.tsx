@@ -61,6 +61,7 @@ function App() {
             const aiContent = data.choices?.[0]?.message?.content || data.error || "No reply";
 
             let jsonValid: string | null = null;
+            console.log('aiContent:', aiContent);
             try {
                 const parsedStr = JSON.parse(
                     aiContent.replace(/`/g, '')
