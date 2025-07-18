@@ -12,6 +12,7 @@
     --blue: #00e1ff;
     --blue-hover: #00b8cc;
     --error: #ff979080;
+    --icon-inversion: invert(1);
 }
 
 * {
@@ -25,6 +26,7 @@ body {
     background-color: var(--grey);
     height: 100vh;
     overflow: hidden;
+    color: var(--white);
 }
 
 main {
@@ -42,6 +44,14 @@ h1 {
 h2 {
     color: var(--white);
     font-size: 32px;
+}
+
+h3 {
+    font-size: 20px;
+}
+
+a {
+    color: var(--blue);
 }
 
 .sidebar {
@@ -66,7 +76,7 @@ h2 {
 
 img.icon {
     width: 40px;
-    filter: brightness(0) invert(1);
+    filter: brightness(0) var(--icon-inversion);
     position: relative;
 }
 
@@ -109,12 +119,17 @@ iframe.page-display {
 }
 
 .settings-area {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-direction: column;
     height: 80%;
     width: 80%; 
     padding: 15px;
     border-radius: var(--border-radius);
     border: none;
     background-color: var(--grey-light);
+    gap: 20px;
 }
 
 .settings-area .option {
@@ -175,7 +190,7 @@ iframe.page-display {
     border: none;
     width: 7.5%;
     background: transparent;
-    filter: brightness(3) invert(1);
+    filter: brightness(3) var(--icon-inversion);
 }
 
 .prompt-submit img {
@@ -252,7 +267,7 @@ iframe.page-display {
 .response-interaction .download {
     width: 25px;
     user-select: none;
-    filter: brightness(3) invert(1);
+    filter: brightness(3) var(--icon-inversion);
 }
 
 .highlight-text {

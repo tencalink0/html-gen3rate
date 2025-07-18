@@ -1,3 +1,4 @@
+import { version } from "../App";
 import { useState, useEffect } from "react";
 
 function Settings() {
@@ -30,6 +31,23 @@ function Settings() {
                         <option value="html2">HTML2</option>
                         <option value="htmlpro">HTMLPro (pre)</option>
                     </select>
+                </div>
+                <div className="option">
+                    <h2>Version: <span style={{
+                        color: 'var(--blue)'
+                    }}>{version}</span></h2>
+                </div>
+                <div className="option">
+                    <h3>Check out my other projects here: <a
+                        href="https://github.com/tencalink0?tab=repositories"
+                        target="_blank"
+                    >tencalink0</a></h3>
+                </div>
+                <div className="option">
+                    <h3>Tip: if you keep getting invalid data from the AI, type:</h3>
+                    <h3 style={{
+                        color: 'var(--blue)'
+                    }}>Force JSON response</h3>
                 </div>
             </div>
         </div>

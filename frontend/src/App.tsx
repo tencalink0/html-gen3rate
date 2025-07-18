@@ -13,6 +13,16 @@ export const ResponseStatus = {
 } as const;
 export type ResponseStatus = typeof ResponseStatus[keyof typeof ResponseStatus];
 
+export const version = '0.1.1';
+
+const colorStates = [
+    ['--white', '#fff', '#333'],
+    ['--grey', '#333', '#aaa'],
+    ['--grey-light', '#444', '#ccc'],
+    ['--grey-light-light', '#555', '#bbb'],
+    ['--icon-inversion', 'invert(1)', 'invert(0)']
+];
+
 function keepFunc(func: any) {
     if (func.hello) window.innerWidth;
 }
@@ -22,11 +32,18 @@ function App() {
     const [ sidebarVisible, setSidebarVisible ] = useState<boolean>(false);
     const [ responses , setResponses ] = useState<[string, ResponseStatus, ResponseJson | string][] | null>(null);
     const [ settingState, setSettingState] = useState<boolean>(false);
+    const [ darkMode, setDarkMode ] = useState<boolean>(true);
     
     useEffect(() => {
         if (localStorage.getItem('wrapper') === null) {
             localStorage.setItem('wrapper', 'html');
         }
+        if (localStorage.getItem('nightmode') === null) {
+            localStorage.setItem('nightmode', 'true');
+        }
+        setDarkMode(
+            localStorage.getItem('nightmode') === 'true'
+        );
         
         const handleResize = () => {
             setIsMobile(window.innerWidth <= 770);
@@ -37,6 +54,23 @@ function App() {
 
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    useEffect(() => {
+        const rootStyle = document.documentElement.style;
+        colorStates.forEach(color => {
+            if (darkMode) {
+                rootStyle.setProperty(
+                    color[0],
+                    color[1]
+                );
+            } else {
+                rootStyle.setProperty(
+                    color[0],
+                    color[2]
+                );
+            }
+        });
+    }, [darkMode]);
 
     const submitPrompt = async (prompt: string) => {
         setResponses(prevResponses => [
@@ -168,6 +202,8 @@ function App() {
                 setSidebarVisible={setSidebarVisible}
                 settingState={settingState}
                 setSettingState={setSettingState}
+                darkMode={darkMode}
+                setDarkMode={setDarkMode}
             />
             {
                 settingState ?

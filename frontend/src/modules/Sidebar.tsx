@@ -1,4 +1,4 @@
-import type { Dispatch, SetStateAction } from 'react';
+import { useEffect, type Dispatch, type SetStateAction } from 'react';
 import HamburgerIcon from '../assets/hamburger.png';
 import SettingsIcon from '../assets/setting.png';
 import NightIcon from '../assets/night-mode.png';
@@ -8,20 +8,36 @@ function Sidebar({
     sidebarVisible,
     setSidebarVisible,
     settingState,
-    setSettingState
+    setSettingState,
+    darkMode,
+    setDarkMode
 } : {
     isMobile: boolean,
     sidebarVisible: boolean,
     setSidebarVisible: Dispatch<SetStateAction<boolean>>,
     settingState: boolean,
-    setSettingState: Dispatch<SetStateAction<boolean>>
+    setSettingState: Dispatch<SetStateAction<boolean>>,
+    darkMode: boolean, 
+    setDarkMode: Dispatch<SetStateAction<boolean>>
 }) {
+    useEffect(() => {
+
+    });
+
     const toggleSidebar = () => {
         setSidebarVisible(!sidebarVisible)
     };
 
     const toggleSettings = () => {
         setSettingState(!settingState);
+    };
+
+    const toggleDarkMode = () => {
+        setDarkMode(!darkMode);
+        localStorage.setItem(
+            'nightmode', 
+            !darkMode ? 'true' : 'false'
+        );
     };
 
     return(
@@ -55,6 +71,7 @@ function Sidebar({
                     <img 
                         className='icon'
                         src={NightIcon}
+                        onClick={toggleDarkMode}
                     />
                     <img 
                         className='icon'
