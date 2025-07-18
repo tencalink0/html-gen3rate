@@ -27,6 +27,19 @@ function keepFunc(func: any) {
     if (func.hello) window.innerWidth;
 }
 
+// lifesaver
+function cleanJsonPrefix(rawString: string): string {
+    const firstBraceIndex = rawString.indexOf('{');
+    if (firstBraceIndex === -1) return rawString;
+
+    const prefix = rawString.slice(0, firstBraceIndex).toLowerCase();
+    if (prefix.includes('json')) {
+        return rawString.slice(firstBraceIndex);
+    }
+
+    return rawString;
+}
+
 function App() {
     const [ isMobile, setIsMobile ] = useState<boolean>(window.innerWidth <= 770);
     const [ sidebarVisible, setSidebarVisible ] = useState<boolean>(false);
@@ -79,24 +92,33 @@ function App() {
         ]);
 
         try {
+            const bodyRes = [
+                ...(responses ?? []), 
+                [prompt, ResponseStatus.Completed, '']
+            ].flatMap(([prompt, resStatus, response]) => 
+                resStatus !== ResponseStatus.Failed ?
+                [   
+                    { role: 'user', content: prompt }, 
+                    { role: 'assistant', content: response }
+                ] :
+                [
+                    { role: 'unknown', content: 'error'}
+                ]
+            );
+
             const res = await fetch('/api/chatbot', {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    messages: [
-                        ...(responses ?? []), 
-                        [prompt, ResponseStatus.Completed, '']
-                    ].flatMap(([prompt, _, response]) => 
-                        [   
-                            { role: 'user', content: prompt }, 
-                            { role: 'assistant', content: response }
-                        ]
-                    ),
+                    messages: bodyRes,
                     wrapper: localStorage.getItem('wrapper') || 'html'
                 })
             });
+
+            console.log(responses);
+            console.log(bodyRes);
 
             const data = await res.json();
             const aiContent = await data.choices?.[0]?.message?.content || "No reply";
@@ -106,13 +128,17 @@ function App() {
             let jsonValid: string | null = null;
             try {
                 const parsedStr = JSON.parse(
-                    aiContent.replace(/`/g, '')
+                    cleanJsonPrefix(
+                        aiContent
+                    ).replace(/`/g, '')
                 );
                 jsonValid = parsedStr;
             } catch (err: any) {
                 console.error('Invalid data from the AI');
                 if (err instanceof SyntaxError) {
                     console.error('JSON parse error:', err.message);
+                    console.log('AI response:');
+                    console.log(aiContent.replace(/`/g, ''));
                 }
             }
 

@@ -63,27 +63,35 @@ app.get("/api/test", async (_req, res) => {
 
 app.post("/api/chatbot", async (req, res) => { 
     try {
-        const userMessages = req.body.messages
+        const userMessagesBuffer = req.body.messages
+            .filter((message: any) => {
+                if (typeof message.content === 'string') return message.content !== 'error';
+                return true;
+            });
+
+        const userMessages = userMessagesBuffer
             .map((message: any) => {
+                console.log('here') // TODO: remove
                 if (!message.role || !message.content) return message;
                 if (
-                    message.role === 'assistant' && message.content.html
+                    message.role === 'assistant'
                 ) {
                     return {
                         ...message,
-                        content: message.content.html
+                        content: message.content.html ?? message.content.response
                     };
                 } else {
                     return message;
                 }
             })
             .filter((message: any) => {
-                return message.content && message.content.trim() !== ""
+                if (message.content === undefined) return false;
+                console.log(`checking:|${message.content}|${message.content.trim() !== ""}`);
+                if (typeof message.content === 'string') return message.content.trim() !== "";
+                return true;
         });
 
-        //console.log(userMessages);
-
-        if (!userMessages || userMessages.length < 0) {
+        if (!userMessages || userMessages.length === 0) {
             res.status(400).json({ error: "Missing messages array in body" });
             return;
         }
@@ -93,7 +101,13 @@ app.post("/api/chatbot", async (req, res) => {
             const localWrapper = await readPromptWrapper(req.body.wrapper || 'html');
             wrapper = localWrapper;
         } catch (err: any) {
-            res.status(500).json({ error: err.message ?? String(err) });
+            try {
+                const localWrapper = await readPromptWrapper(req.body.wrapper || 'html');
+                wrapper = localWrapper;
+            } catch (err: any) {
+                res.status(500).json({ error: err.message ?? String(err) });
+                return;
+            }
         }
 
         if (wrapper !== undefined) {
@@ -111,8 +125,12 @@ app.post("/api/chatbot", async (req, res) => {
                 body: JSON.stringify({ messages: wrappedLastMessage })
             });
 
-            const data = await response.json();
-            res.json(data);
+            if (response.ok) {
+                const data = await response.json();
+                res.json(data);
+            } else {
+                res.status(400).json({error: response.statusText})
+            }
         }
     } catch (error) {
         console.error("Error:", error);

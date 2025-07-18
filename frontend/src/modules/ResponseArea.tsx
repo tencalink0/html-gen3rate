@@ -32,7 +32,7 @@ const WORD_TIMEOUT = 1300; // ms
 export const ResponseJsonSchema = z.object({
     response: z.string(),
     description: z.string().optional(),
-    html: z.string()
+    html: z.string().optional()
 });
 
 export type ResponseJson = z.infer<typeof ResponseJsonSchema>;
@@ -183,27 +183,28 @@ function ResponseArea({
                                                         }
                                                     </p>
                                                 </div>
-                                                {
-                                                    ResponseJsonSchema.safeParse(response[2]).success ?
+                                                {(() => {
+                                                    const parsed = ResponseJsonSchema.safeParse(response[2]);
+                                                    if (!parsed.success || parsed.data.html === undefined) return null;
+
+                                                    const { html, description } = parsed.data;
+
+                                                    return (
                                                         <div className="response-interaction">
                                                             <a 
                                                                 className="highlight-text"
-                                                                onClick={() => loadCode(
-                                                                    (response[2] as ResponseJson).html,
-                                                                    (response[2] as ResponseJson).description
-                                                                )}
-                                                            >Preview</a>
+                                                                onClick={() => loadCode(html, description)}
+                                                            >
+                                                                Preview
+                                                            </a>
                                                             <img 
                                                                 src={DownloadBtn}
                                                                 className="download"
-                                                                onClick={() => downloadCode(
-                                                                    (response[2] as ResponseJson).html,
-                                                                    (response[2] as ResponseJson).description
-                                                                )}
+                                                                onClick={() => downloadCode(html, description)}
                                                             />
                                                         </div>
-                                                        : ''
-                                                }
+                                                    );
+                                                })()}
                                             </div>
                                         ))
                                     }

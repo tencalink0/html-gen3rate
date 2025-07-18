@@ -30,6 +30,7 @@ function Settings() {
                         <option value="html">HTML</option>
                         <option value="html2">HTML2</option>
                         <option value="htmlpro">HTMLPro (pre)</option>
+                        <option value="chat">Chat (no html)</option>
                     </select>
                 </div>
                 <div className="option">
