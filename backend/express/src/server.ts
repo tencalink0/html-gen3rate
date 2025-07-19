@@ -71,7 +71,6 @@ app.post("/api/chatbot", async (req, res) => {
 
         const userMessages = userMessagesBuffer
             .map((message: any) => {
-                console.log('here') // TODO: remove
                 if (!message.role || !message.content) return message;
                 if (
                     message.role === 'assistant'
@@ -86,7 +85,6 @@ app.post("/api/chatbot", async (req, res) => {
             })
             .filter((message: any) => {
                 if (message.content === undefined) return false;
-                console.log(`checking:|${message.content}|${message.content.trim() !== ""}`);
                 if (typeof message.content === 'string') return message.content.trim() !== "";
                 return true;
         });

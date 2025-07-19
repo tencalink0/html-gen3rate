@@ -93,6 +93,13 @@ img.icon {
     align-items: center;
     justify-content: center;
     flex-direction: column;
+    position: relative;
+}
+
+.wrapper-title {
+    position: absolute;
+    right: 5%;
+    top: 5%;
 }
 
 .page-display-wrapper {
@@ -130,6 +137,7 @@ iframe.page-display {
     border: none;
     background-color: var(--grey-light);
     gap: 20px;
+    position: relative;
 }
 
 .settings-area .option {
