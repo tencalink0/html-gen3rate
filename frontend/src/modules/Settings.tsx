@@ -1,7 +1,11 @@
 import { version } from "../App";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, type Dispatch, type SetStateAction } from "react";
 
-function Settings() {
+function Settings({
+    setWrapperLabel
+} : {
+    setWrapperLabel: Dispatch<SetStateAction<string>>
+}) {
     const [wrapper, setWrapper] = useState(() => {
         return localStorage.getItem('wrapper') || 'html';
     });
@@ -9,6 +13,14 @@ function Settings() {
     useEffect(() => {
         localStorage.setItem('wrapper', wrapper);
     }, [wrapper]);
+
+    const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setWrapper(e.target.value);
+
+        const selectedOption = e.target.selectedOptions[0];
+        const label = selectedOption.getAttribute('data-label')!;
+        setWrapperLabel(label);
+    };
 
     return(
         <div
@@ -26,11 +38,11 @@ function Settings() {
             >
                 <div className="option">
                     <h2>Wrapper:</h2>
-                    <select value={wrapper} onChange={(e) => setWrapper(e.target.value)}>
-                        <option value="html">HTML</option>
-                        <option value="html2">HTML2</option>
-                        <option value="htmlpro">HTMLPro (pre)</option>
-                        <option value="chat">Chat (no html)</option>
+                    <select value={wrapper} onChange={handleSelect}>
+                        <option value="html" data-label="HTML">HTML</option>
+                        <option value="html2" data-label="HTML2">HTML2</option>
+                        <option value="htmlpro" data-label="HTMLPro (pre)">HTMLPro (pre)</option>
+                        <option value="chat" data-label="Chat (no html)">Chat (no html)</option>
                     </select>
                 </div>
                 <div className="option">

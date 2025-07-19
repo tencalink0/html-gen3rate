@@ -7,17 +7,15 @@ import SendIcon from '../assets/send.png';
 
 function ChatArea({
     responses,
-    submitPrompt
+    submitPrompt,
+    wrapperLabel
 }: {
     responses: [string, ResponseStatus, ResponseJson | string][] | null,
-    submitPrompt: (prompt: string) => void
+    submitPrompt: (prompt: string) => void,
+    wrapperLabel: string
 }) {
     const [ prompt, setPrompt ] = useState<string>('');
     const [ codeTitle, setCodeTitle ] = useState<string | undefined>(undefined)
-
-    const [wrapper, _setWrapper] = useState(() => {
-        return localStorage.getItem('wrapper') || 'html';
-    });
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setPrompt(e.target.value);
@@ -32,7 +30,7 @@ function ChatArea({
     return(
         <div className='chat-area'>
             <div className="wrapper-title">
-                <h3>Wrapper: {wrapper}</h3>
+                <h3>Wrapper: {wrapperLabel}</h3>
             </div>
             <h1>
                 {

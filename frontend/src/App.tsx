@@ -1,7 +1,7 @@
 import Sidebar from './modules/Sidebar';
 import ChatArea from './modules/ChatArea';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import './App.css';
 import { ResponseJsonSchema, type ResponseJson } from './modules/ResponseArea';
 import Settings from './modules/Settings';
@@ -40,12 +40,158 @@ function cleanJsonPrefix(rawString: string): string {
     return rawString;
 }
 
+const submitPrompt = async (
+    prompt: string,
+    responses: [string, ResponseStatus, ResponseJson | string][] | null, 
+    setResponses: Dispatch<SetStateAction<[string, ResponseStatus, ResponseJson | string][] | null>>
+) => {
+    setResponses(prevResponses => [
+        ...(prevResponses ?? []),
+        [prompt, ResponseStatus.Processing, ''] as [string, ResponseStatus, ResponseJson | string]
+    ]);
+
+    try {
+        const bodyRes = [
+            ...(responses ?? []), 
+            [prompt, ResponseStatus.Completed, '']
+        ].flatMap(([prompt, resStatus, response]) => 
+            resStatus !== ResponseStatus.Failed ?
+            [   
+                { role: 'user', content: prompt }, 
+                { role: 'assistant', content: response }
+            ] :
+            [
+                { role: 'unknown', content: 'error'}
+            ]
+        );
+
+        const res = await fetch('/api/chatbot', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                messages: bodyRes,
+                wrapper: localStorage.getItem('wrapper') || 'html'
+            })
+        });
+
+        console.log(responses);
+        console.log(bodyRes);
+
+        const data = await res.json();
+        const aiContent = await data.choices?.[0]?.message?.content || "No reply";
+
+        if (data.error) throw new Error(data.error);
+
+        let jsonValid: string | null = null;
+        try {
+            const parsedStr = JSON.parse(
+                cleanJsonPrefix(
+                    aiContent
+                ).replace(/`/g, '')
+            );
+            jsonValid = parsedStr;
+        } catch (err: any) {
+            console.error('Invalid data from the AI');
+            if (err instanceof SyntaxError) {
+                console.error('JSON parse error:', err.message);
+                console.log('AI response:');
+                console.log(aiContent.replace(/`/g, ''));
+            }
+        }
+
+        let parsedResponse: ResponseJson | null = null;
+        if (jsonValid) {
+            const parsed = await ResponseJsonSchema.safeParseAsync(jsonValid);
+            if (parsed.success) {
+                parsedResponse = parsed.data;
+            } else {
+                console.error(parsed.error.issues);
+            }
+        }
+
+        const successfulParse = jsonValid === null || parsedResponse === null ? false : true;
+        const newResponse = [
+            prompt, 
+            successfulParse ? ResponseStatus.Completed : ResponseStatus.Failed, 
+            successfulParse ? parsedResponse : 'Invalid data provided from the AI'
+        ] as [string, ResponseStatus, ResponseJson | string]
+
+        setResponses(prevResponses => {
+            const responses = [...(prevResponses ?? [])];
+            responses[responses.length - 1] = newResponse;
+            return responses;
+        });
+    } catch (error: any) {
+        setResponses(prevResponses => {
+            if (!prevResponses) return null;
+
+            const updated = [...prevResponses];
+            const lastIndex = updated.length - 1;
+
+            updated[lastIndex] = [
+                updated[lastIndex][0],
+                ResponseStatus.Failed,
+                error.message ?? String(error)
+            ];
+
+            return updated;
+        });
+    }
+};
+
+const _submitPrompt = async (
+    prompt: string,
+    responses: [string, ResponseStatus, ResponseJson | string][] | null, 
+    setResponses: Dispatch<SetStateAction<[string, ResponseStatus, ResponseJson | string][] | null>>
+) => {
+    const aiContent = `
+        { "response": "a", "description": "Omg", "html": "<!DOCTYPE html><html><head><title>Sleek Webpage</title><style>body{font-family:Arial,sans-serif;margin:0;padding:0}header{background-color:#333;color:#fff;padding:1em;text-align:center}.container{display:flex;flex-direction:column;align-items:center;padding:2em}.card{background-color:#f7f7f7;padding:1em;margin:1em;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1)}</style></head><body><header><h1>Welcome to my Sleek Webpage</h1></header><div class='container'><div class='card'><h2>About Me</h2><p>This is a sample webpage.</p></div></div></body></html>" }
+    `;
+
+    let jsonValid: string | null = null;
+    try {
+        const parsedStr = JSON.parse(aiContent);
+        jsonValid = parsedStr;
+    } catch {
+        console.error('Invalid data from the AI');
+    }
+
+    let parsedResponse: ResponseJson | null = null;
+    if (jsonValid) {
+        const parsed = await ResponseJsonSchema.safeParseAsync(jsonValid);
+        if (parsed.success) {
+            parsedResponse = parsed.data;
+        } else {
+            console.error(parsed.error.issues);
+        }
+    }
+
+    const successfulParse = jsonValid === null || parsedResponse === null ? false : true;
+    const newResponse = [
+        prompt, 
+        successfulParse ? ResponseStatus.Completed : ResponseStatus.Failed, 
+        successfulParse ? parsedResponse : 'Invalid data provided from the AI'
+    ] as [string, ResponseStatus, ResponseJson | string]
+
+    console.log(responses);
+    setResponses(prevResponses => [
+        ...(prevResponses ?? []),
+        newResponse
+    ]);
+}
+
+keepFunc(_submitPrompt);
+
+
 function App() {
     const [ isMobile, setIsMobile ] = useState<boolean>(window.innerWidth <= 770);
     const [ sidebarVisible, setSidebarVisible ] = useState<boolean>(false);
     const [ responses , setResponses ] = useState<[string, ResponseStatus, ResponseJson | string][] | null>(null);
     const [ settingState, setSettingState] = useState<boolean>(false);
     const [ darkMode, setDarkMode ] = useState<boolean>(true);
+    const [ wrapperLabel, setWrapperLabel ] = useState<string>('HTML');
     
     useEffect(() => {
         if (localStorage.getItem('wrapper') === null) {
@@ -85,161 +231,36 @@ function App() {
         });
     }, [darkMode]);
 
-    const submitPrompt = async (prompt: string) => {
-        setResponses(prevResponses => [
-            ...(prevResponses ?? []),
-            [prompt, ResponseStatus.Processing, ''] as [string, ResponseStatus, ResponseJson | string]
-        ]);
-
-        try {
-            const bodyRes = [
-                ...(responses ?? []), 
-                [prompt, ResponseStatus.Completed, '']
-            ].flatMap(([prompt, resStatus, response]) => 
-                resStatus !== ResponseStatus.Failed ?
-                [   
-                    { role: 'user', content: prompt }, 
-                    { role: 'assistant', content: response }
-                ] :
-                [
-                    { role: 'unknown', content: 'error'}
-                ]
-            );
-
-            const res = await fetch('/api/chatbot', {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    messages: bodyRes,
-                    wrapper: localStorage.getItem('wrapper') || 'html'
-                })
-            });
-
-            console.log(responses);
-            console.log(bodyRes);
-
-            const data = await res.json();
-            const aiContent = await data.choices?.[0]?.message?.content || "No reply";
-
-            if (data.error) throw new Error(data.error);
-
-            let jsonValid: string | null = null;
-            try {
-                const parsedStr = JSON.parse(
-                    cleanJsonPrefix(
-                        aiContent
-                    ).replace(/`/g, '')
-                );
-                jsonValid = parsedStr;
-            } catch (err: any) {
-                console.error('Invalid data from the AI');
-                if (err instanceof SyntaxError) {
-                    console.error('JSON parse error:', err.message);
-                    console.log('AI response:');
-                    console.log(aiContent.replace(/`/g, ''));
-                }
-            }
-
-            let parsedResponse: ResponseJson | null = null;
-            if (jsonValid) {
-                const parsed = await ResponseJsonSchema.safeParseAsync(jsonValid);
-                if (parsed.success) {
-                    parsedResponse = parsed.data;
-                } else {
-                    console.error(parsed.error.issues);
-                }
-            }
-
-            const successfulParse = jsonValid === null || parsedResponse === null ? false : true;
-            const newResponse = [
-                prompt, 
-                successfulParse ? ResponseStatus.Completed : ResponseStatus.Failed, 
-                successfulParse ? parsedResponse : 'Invalid data provided from the AI'
-            ] as [string, ResponseStatus, ResponseJson | string]
-
-            setResponses(prevResponses => {
-                const responses = [...(prevResponses ?? [])];
-                responses[responses.length - 1] = newResponse;
-                return responses;
-            });
-        } catch (error: any) {
-            setResponses(prevResponses => {
-                if (!prevResponses) return null;
-
-                const updated = [...prevResponses];
-                const lastIndex = updated.length - 1;
-
-                updated[lastIndex] = [
-                    updated[lastIndex][0],
-                    ResponseStatus.Failed,
-                    error.message ?? String(error)
-                ];
-
-                return updated;
-            });
-        }
-    };
-
-    const _submitPrompt = async (prompt: string) => {
-        const aiContent = `
-            { "response": "a", "description": "Omg", "html": "<!DOCTYPE html><html><head><title>Sleek Webpage</title><style>body{font-family:Arial,sans-serif;margin:0;padding:0}header{background-color:#333;color:#fff;padding:1em;text-align:center}.container{display:flex;flex-direction:column;align-items:center;padding:2em}.card{background-color:#f7f7f7;padding:1em;margin:1em;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1)}</style></head><body><header><h1>Welcome to my Sleek Webpage</h1></header><div class='container'><div class='card'><h2>About Me</h2><p>This is a sample webpage.</p></div></div></body></html>" }
-        `;
-
-        let jsonValid: string | null = null;
-        try {
-            const parsedStr = JSON.parse(aiContent);
-            jsonValid = parsedStr;
-        } catch {
-            console.error('Invalid data from the AI');
-        }
-
-        let parsedResponse: ResponseJson | null = null;
-        if (jsonValid) {
-            const parsed = await ResponseJsonSchema.safeParseAsync(jsonValid);
-            if (parsed.success) {
-                parsedResponse = parsed.data;
-            } else {
-                console.error(parsed.error.issues);
-            }
-        }
-
-        const successfulParse = jsonValid === null || parsedResponse === null ? false : true;
-        const newResponse = [
-            prompt, 
-            successfulParse ? ResponseStatus.Completed : ResponseStatus.Failed, 
-            successfulParse ? parsedResponse : 'Invalid data provided from the AI'
-        ] as [string, ResponseStatus, ResponseJson | string]
-
-        setResponses(prevResponses => [
-            ...(prevResponses ?? []),
-            newResponse
-        ]);
-    }
-    
-    keepFunc(_submitPrompt);
-
     return (
-        <main>
-            <Sidebar 
-                isMobile={isMobile}
-                sidebarVisible={sidebarVisible}
-                setSidebarVisible={setSidebarVisible}
-                settingState={settingState}
-                setSettingState={setSettingState}
-                darkMode={darkMode}
-                setDarkMode={setDarkMode}
-            />
-            {
-                settingState ?
-                <Settings /> :
-                <ChatArea
-                    submitPrompt={submitPrompt}
-                    responses={responses}
+        <>
+            <div id="overlay"/>
+            <h1 className='title'>Hey</h1>
+            <button className='skip-intro'>Skip</button>
+            <main>
+                <Sidebar 
+                    isMobile={isMobile}
+                    sidebarVisible={sidebarVisible}
+                    setSidebarVisible={setSidebarVisible}
+                    settingState={settingState}
+                    setSettingState={setSettingState}
+                    darkMode={darkMode}
+                    setDarkMode={setDarkMode}
                 />
-            }
-        </main>
+                {
+                    settingState ?
+                    <Settings 
+                        setWrapperLabel={setWrapperLabel}
+                    /> :
+                    <ChatArea
+                        submitPrompt={(prompt: string) => {
+                            submitPrompt(prompt, responses, setResponses)
+                        }}
+                        responses={responses}
+                        wrapperLabel={wrapperLabel}
+                    />
+                }
+            </main>
+        </>
     );
 }
 
