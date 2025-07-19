@@ -184,6 +184,22 @@ const _submitPrompt = async (
 
 keepFunc(_submitPrompt);
 
+// TODO: FIND BETTER WAY OF HANDLING
+const wrapperMapping = (rawWrapper: string | null) => {
+    if (rawWrapper === null) return null;
+    switch (rawWrapper) {
+        case 'html':
+            return 'HTML';
+        case 'html2':
+            return 'HTML2';
+        case 'htmlpro':
+            return 'HTMLPro (pre)';
+        case 'chat':
+            return 'Chat (no html)';
+        default:
+            return null;
+    }
+};
 
 function App() {
     const [ isMobile, setIsMobile ] = useState<boolean>(window.innerWidth <= 770);
@@ -191,7 +207,9 @@ function App() {
     const [ responses , setResponses ] = useState<[string, ResponseStatus, ResponseJson | string][] | null>(null);
     const [ settingState, setSettingState] = useState<boolean>(false);
     const [ darkMode, setDarkMode ] = useState<boolean>(true);
-    const [ wrapperLabel, setWrapperLabel ] = useState<string>('HTML');
+    const [ wrapperLabel, setWrapperLabel ] = useState<string>(wrapperMapping(
+        localStorage.getItem('wrapper')
+    ) ?? 'HTML');
     
     useEffect(() => {
         if (localStorage.getItem('wrapper') === null) {
